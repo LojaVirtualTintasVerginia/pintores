@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pintor {
+  id              String            @id @default(uuid())
+  name            String
+  cpf             String            @unique
+  email           String            @unique
+  description     String
+  address         String
+  city            String
+  state           String
+  whatsappNumber  String
+  facebook        String
+  instagram       String
+  photo           String
+  obra1           String
+  obra2           String
+  obra3           String
+  ativo           Boolean
+  PintoresPintura PintoresPintura[]
+
+  @@map("pintor")
+}
+
+model Pintura {
+  id              String            @id @default(uuid())
+  name            String
+  photo           String
+  PintoresPintura PintoresPintura[]
+
+  @@map("pintura")
+}
+
+model PintoresPintura {
+  id        String @id @default(uuid())
+  pintor_id Pintor @relation(fields: [pintorId], references: [id])
+  pintorId  String
+
+  pintura_id Pintura @relation(fields: [pinturaId], references: [id])
+  pinturaId  String
+
+  @@map("pintores_pintura ")
+}
