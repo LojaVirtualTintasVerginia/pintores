@@ -11,15 +11,19 @@ import { z } from 'zod'
 const prisma = new PrismaClient()
 const upload = multer(multerConfig).single('photo')
 
-class PinturasController {
+class PinturaController {
   async list(request: Request, response: Response) {
     const pinturas = await prisma.pintura.findMany()
 
-    return response.send({
-      pinturas: pinturas.map((pintura) => ({
-        ...pintura,
-      })),
+    const serializedPintores = pinturas.map((pintura) => {
+      return {
+        id: pintura.id,
+        name: pintura.name,
+        photo: pintura.photo,
+      }
     })
+
+    return response.json(serializedPintores)
   }
 
   async create(request: Request, response: Response) {
@@ -62,4 +66,4 @@ class PinturasController {
   }
 }
 
-export default PinturasController
+export default PinturaController

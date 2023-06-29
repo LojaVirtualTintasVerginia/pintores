@@ -15,7 +15,7 @@ CREATE TABLE "pintor" (
     "obra1" TEXT NOT NULL,
     "obra2" TEXT NOT NULL,
     "obra3" TEXT NOT NULL,
-    "ativo" BOOLEAN NOT NULL,
+    "status" TEXT NOT NULL,
 
     CONSTRAINT "pintor_pkey" PRIMARY KEY ("id")
 );
@@ -30,12 +30,12 @@ CREATE TABLE "pintura" (
 );
 
 -- CreateTable
-CREATE TABLE "pintores_pintura " (
+CREATE TABLE "pintores_pintura" (
     "id" TEXT NOT NULL,
     "pintorId" TEXT NOT NULL,
     "pinturaId" TEXT NOT NULL,
 
-    CONSTRAINT "pintores_pintura _pkey" PRIMARY KEY ("id")
+    CONSTRAINT "pintores_pintura_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX "pintor_cpf_key" ON "pintor"("cpf");
 CREATE UNIQUE INDEX "pintor_email_key" ON "pintor"("email");
 
 -- AddForeignKey
-ALTER TABLE "pintores_pintura " ADD CONSTRAINT "pintores_pintura _pintorId_fkey" FOREIGN KEY ("pintorId") REFERENCES "pintor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pintores_pintura" ADD CONSTRAINT "pintores_pintura_pintorId_fkey" FOREIGN KEY ("pintorId") REFERENCES "pintor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pintores_pintura " ADD CONSTRAINT "pintores_pintura _pinturaId_fkey" FOREIGN KEY ("pinturaId") REFERENCES "pintura"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pintores_pintura" ADD CONSTRAINT "pintores_pintura_pinturaId_fkey" FOREIGN KEY ("pinturaId") REFERENCES "pintura"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
