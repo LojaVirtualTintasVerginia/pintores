@@ -51,7 +51,7 @@ class PintoresController {
     const serializedPintores = pintoresFiltrados.map((pintor) => {
       return {
         ...pintor,
-        image_url: `https://192.168.1.115/uploads/${pintor.photo}`,
+        image_url: `http://192.168.1.115:3333/uploads/${pintor.photo}`,
       }
     })
 

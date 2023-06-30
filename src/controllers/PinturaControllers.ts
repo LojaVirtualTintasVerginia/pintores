@@ -18,8 +18,8 @@ class PinturaController {
     const serializedPintores = pinturas.map((pintura) => {
       return {
         id: pintura.id,
-        name: pintura.name,
-        photo: `C:/Temp/clube-api/api/uploads/${pintura.photo}`,
+        title: pintura.name,
+        photo: `https://dashboard.render.com/uploads/${pintura.photo}`,
       }
     })
 
