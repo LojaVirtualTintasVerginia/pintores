@@ -11,7 +11,7 @@ class PintoresController {
     const serializedPintores = pintores.map((pintor) => {
       return {
         ...pintor,
-        image_url: `192.168.1.115/uploads/${pintor.photo}`,
+        image_url: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
       }
     })
 
@@ -51,7 +51,7 @@ class PintoresController {
     const serializedPintores = pintoresFiltrados.map((pintor) => {
       return {
         ...pintor,
-        image_url: `http://192.168.1.115:3333/uploads/${pintor.photo}`,
+        image_url: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
       }
     })
 
@@ -72,7 +72,10 @@ class PintoresController {
 
       const serializedPintor = {
         ...pintor,
-        image_url: `http://192.168.1.115:3333/uploads/${pintor.photo}`,
+        photo: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
+        obra1: `http://172.20.0.1:3333/uploads/${pintor.obra1}`,
+        obra2: `http://172.20.0.1:3333/uploads/${pintor.obra2}`,
+        obra3: `http://172.20.0.1:3333/uploads/${pintor.obra3}`,
       }
 
       const pinturas = await prisma.pintura.findMany({
@@ -182,13 +185,53 @@ class PintoresController {
       status,
     } = request.body
 
-    console.log(request.body, 'aqui')
+    // Verifica se já existe um pintor com o mesmo CPF
+    const existingPintor = await prisma.pintor.findUnique({
+      where: { cpf },
+    })
 
-    const pintor = {
-      photo: request.files.image[0].filename,
-      obra1: request.files.image1[0].filename,
-      obra2: request.files.image2[0].filename,
-      obra3: request.files.image3[0].filename,
+    if (existingPintor) {
+      // Exclui as imagens enviadas pelo usuário
+      await Promise.all([
+        fs
+          .unlink(request.files.image[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image1[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image2[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image3[0].path)
+          .catch((err) => console.error(err)),
+      ])
+
+      return response.status(400).json({ error: 'CPF já está em uso' })
+    }
+
+    // Validação do campo CPF
+    if (!cpf) {
+      // Exclui as imagens enviadas pelo usuário
+      await Promise.all([
+        fs
+          .unlink(request.files.image[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image1[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image2[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image3[0].path)
+          .catch((err) => console.error(err)),
+      ])
+
+      return response.status(400).json({ error: 'CPF é obrigatório' })
+    }
+
+    const pintorData: Pintor = {
       name,
       cpf,
       email,
@@ -200,29 +243,57 @@ class PintoresController {
       facebook,
       instagram,
       status,
+      photo: request.files.image[0].filename,
+      obra1: request.files.image1[0].filename,
+      obra2: request.files.image2[0].filename,
+      obra3: request.files.image3[0].filename,
     }
 
-    const pintorRecord = await prisma.pintor.create({ data: pintor })
+    try {
+      const pintorRecord = await prisma.pintor.create({ data: pintorData })
 
-    const pintoresPintura = pinturas
-      .split(',')
-      .map((pintura) => pintura.trim())
-      .map((pinturaId) => {
-        return {
-          pinturaId,
-          pintorId: pintorRecord.id,
-        }
+      const pintoresPintura = pinturas
+        .split(',')
+        .map((pintura) => pintura.trim())
+        .map((pinturaId) => {
+          return {
+            pinturaId,
+            pintorId: pintorRecord.id,
+          }
+        })
+
+      const pintorPinturaRecords = await prisma.pintoresPintura.createMany({
+        data: pintoresPintura,
       })
 
-    const pintorPinturaRecords = await prisma.pintoresPintura.createMany({
-      data: pintoresPintura,
-    })
+      return response.json({
+        id: pintorRecord.id,
+        ...pintorRecord,
+      })
+    } catch (error) {
+      console.error(error)
 
-    return response.json({
-      id: pintorRecord.id,
-      ...pintorRecord,
-    })
+      // Exclui as imagens enviadas pelo usuário
+      await Promise.all([
+        fs
+          .unlink(request.files.image[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image1[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image2[0].path)
+          .catch((err) => console.error(err)),
+        fs
+          .unlink(request.files.image3[0].path)
+          .catch((err) => console.error(err)),
+      ])
+
+      return response.status(500).json({ error: 'Erro ao criar o pintor' })
+    }
   }
+
+  // Resto do código do controller...
 }
 
 export default PintoresController
