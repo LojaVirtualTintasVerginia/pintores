@@ -11,7 +11,7 @@ class PintoresController {
     const serializedPintores = pintores.map((pintor) => {
       return {
         ...pintor,
-        image_url: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
+        image_url: `https://verginia.onrender.com/uploads/${pintor.photo}`,
       }
     })
 
@@ -51,7 +51,7 @@ class PintoresController {
     const serializedPintores = pintoresFiltrados.map((pintor) => {
       return {
         ...pintor,
-        image_url: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
+        image_url: `https://verginia.onrender.com/uploads/${pintor.photo}`,
       }
     })
 
@@ -72,10 +72,10 @@ class PintoresController {
 
       const serializedPintor = {
         ...pintor,
-        photo: `http://172.20.0.1:3333/uploads/${pintor.photo}`,
-        obra1: `http://172.20.0.1:3333/uploads/${pintor.obra1}`,
-        obra2: `http://172.20.0.1:3333/uploads/${pintor.obra2}`,
-        obra3: `http://172.20.0.1:3333/uploads/${pintor.obra3}`,
+        photo: `https://verginia.onrender.com/uploads/${pintor.photo}`,
+        obra1: `https://verginia.onrender.com/uploads/${pintor.obra1}`,
+        obra2: `https://verginia.onrender.com/uploads/${pintor.obra2}`,
+        obra3: `https://verginia.onrender.com/uploads/${pintor.obra3}`,
       }
 
       const pinturas = await prisma.pintura.findMany({

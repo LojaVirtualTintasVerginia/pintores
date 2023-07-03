@@ -19,7 +19,7 @@ class PinturaController {
       return {
         id: pintura.id,
         title: pintura.name,
-        photo: `http://172.20.0.1:3333/uploads/${pintura.photo}`,
+        photo: `https://verginia.onrender.com/uploads/${pintura.photo}`,
       }
     })
 
