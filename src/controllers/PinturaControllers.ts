@@ -1,42 +1,49 @@
 import { Request, Response } from 'express'
-import fs from 'fs'
-import multer from 'multer'
-
-import multerConfig from '../config/multer'
 
 import { PrismaClient } from '@prisma/client'
-
-import { z } from 'zod'
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 const prisma = new PrismaClient()
-const upload = multer(multerConfig).single('photo')
+
+const s3Client = new S3Client({
+  region: process.env.AWS_DEFAULT_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+})
 
 class PinturaController {
-  async list(request: Request, response: Response) {
-    const pinturas = await prisma.pintura.findMany()
+  async list(_request: Request, response: Response) {
+    try {
+      const pinturas = await prisma.pintura.findMany()
 
-    const serializedPintores = pinturas.map((pintura) => {
-      return {
+      const serializedPinturas = pinturas.map((pintura) => ({
         id: pintura.id,
         title: pintura.name,
-        photo: `https://verginia.onrender.com/uploads/${pintura.photo}`,
-      }
-    })
+        photo: pintura.photo,
+      }))
 
-    return response.json(serializedPintores)
+      return response.json(serializedPinturas)
+    } catch (error) {
+      console.error(error)
+      response.status(500).json({ error: 'Error fetching pinturas' })
+    }
   }
 
   async create(request: Request, response: Response) {
     try {
       const { name } = request.body
+      const photo = request.file.location
+
       const pintura = await prisma.pintura.create({
-        data: { name, photo: request.file.filename },
+        data: { name, photo },
       })
-      return response.json({
-        ...pintura,
-      })
+
+      return response.json(pintura)
     } catch (error) {
-      response.status(500).send({ error: 'Error creating pintura' })
+      console.error(error)
+      response.status(500).json({ error: 'Error creating pintura' })
     }
   }
 
@@ -46,22 +53,29 @@ class PinturaController {
 
       const pintura = await prisma.pintura.findUnique({
         where: { id },
-        select: { photo: true },
       })
 
       if (!pintura) {
-        return response.status(404).send({ error: 'Pintura not found' })
+        return response.status(404).json({ error: 'Pintura not found' })
       }
-      const imagePath = `uploads/${pintura.photo}`
-      fs.unlinkSync(imagePath)
 
       await prisma.pintura.delete({
         where: { id },
       })
 
-      return response.status(204).send(pintura)
+      const key = pintura.photo.split('/').pop()
+
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.BUCKET_NAME || '', // Add default value or handle missing value
+          Key: key,
+        }),
+      )
+
+      return response.json({ message: 'Pintura deleted successfully' })
     } catch (error) {
-      response.status(500).send({ error: 'Error deleting pintura' })
+      console.error(error)
+      response.status(500).json({ error: 'Error deleting pintura' })
     }
   }
 }
