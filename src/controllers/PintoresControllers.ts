@@ -20,6 +20,38 @@ async function deleteS3Object(key: string) {
   )
 }
 
+async function deleteUploadedFiles(files: any) {
+  try {
+    const fileUrls = Object.values(files).flatMap((file: any) =>
+      file.map((f: any) => f.location),
+    )
+
+    await Promise.all(
+      fileUrls.map((fileUrl: string) => deleteFileFromS3(fileUrl)),
+    )
+
+    console.log('Arquivos excluídos com sucesso.')
+  } catch (error) {
+    console.error('Erro ao excluir os arquivos:', error)
+    throw error
+  }
+}
+
+async function deleteFileFromS3(fileUrl: string) {
+  const fileName = fileUrl.split('/').pop()
+
+  if (!fileName) {
+    throw new Error('Nome do arquivo inválido')
+  }
+
+  const params = {
+    Bucket: process.env.BUCKET_NAME,
+    Key: fileName,
+  }
+
+  await s3Client.send(new DeleteObjectCommand(params))
+}
+
 class PintoresController {
   async list(request: Request, response: Response) {
     const pintores = await prisma.pintor.findMany()
@@ -69,28 +101,6 @@ class PintoresController {
         id: true,
       },
     })
-
-    const pintorIds = pintoresComPintura.map((pintor) => pintor.id)
-
-    // Filtra os pintores com base nos IDs obtidos e nos campos state e city
-    const pintoresFiltrados = await prisma.pintor.findMany({
-      where: {
-        id: {
-          in: pintorIds,
-        },
-        state: String(state),
-        city: String(city),
-      },
-    })
-
-    const serializedPintores = pintoresFiltrados.map((pintor) => {
-      return {
-        ...pintor,
-        image_url: `${pintor.photo}`,
-      }
-    })
-
-    return response.json(serializedPintores)
   }
 
   async perfil(request: Request, response: Response) {
