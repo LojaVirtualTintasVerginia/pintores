@@ -88,19 +88,39 @@ class PintoresController {
   async filter(request: Request, response: Response) {
     const { pintura, state, city } = request.query
 
-    // Obtém os IDs dos pintores que possuem a pintura desejada
-    const pintoresComPintura = await prisma.pintor.findMany({
-      where: {
-        PintoresPintura: {
-          some: {
-            pinturaId: pintura,
+    try {
+      // Obtém os pintores que possuem a pintura desejada, dentro do estado e cidade especificados
+      const pintoresComPintura = await prisma.pintor.findMany({
+        where: {
+          state,
+          city,
+          PintoresPintura: {
+            some: {
+              pinturaId: pintura,
+            },
           },
         },
-      },
-      select: {
-        id: true,
-      },
-    })
+        select: {
+          id: true,
+          photo: true,
+        },
+      })
+
+      // Mapeia os pintores para adicionar a URL da imagem
+      const pintoresComImagem = pintoresComPintura.map((pintor) => ({
+        ...pintor,
+        image_url: `https://verginia.onrender.com/uploads/${pintor.photo}`,
+      }))
+
+      // Retorna a lista de pintores com as URLs das imagens
+      response.json({ pintores: pintoresComImagem })
+    } catch (error) {
+      // Lida com qualquer erro ocorrido durante a consulta
+      console.error('Erro ao filtrar pintores:', error)
+      response
+        .status(500)
+        .json({ error: 'Ocorreu um erro ao filtrar os pintores.' })
+    }
   }
 
   async perfil(request: Request, response: Response) {
