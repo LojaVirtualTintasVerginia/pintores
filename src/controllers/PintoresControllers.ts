@@ -109,7 +109,7 @@ class PintoresController {
       // Mapeia os pintores para adicionar a URL da imagem
       const pintoresComImagem = pintoresComPintura.map((pintor) => ({
         ...pintor,
-        image_url: `https://verginia.onrender.com/uploads/${pintor.photo}`,
+        image_url: `${pintor.photo}`,
       }))
 
       // Retorna a lista de pintores com as URLs das imagens
